@@ -9,6 +9,7 @@
         background: #222;
         color: #fff;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         height: 100vh;
@@ -18,6 +19,7 @@
         grid-template-columns: repeat(5, 60px);
         grid-template-rows: repeat(5, 60px);
         gap: 5px;
+        margin-bottom: 20px;
       }
       .tile {
         width: 60px;
@@ -29,6 +31,7 @@
         cursor: pointer;
         border-radius: 8px;
         transition: transform 0.2s;
+        position: relative;
       }
       .tile:hover {
         transform: scale(1.1);
@@ -41,6 +44,7 @@
       .vertical {
         width: 10px;
         height: 40px;
+        background: #0f0;
       }
       .corner {
         width: 40px;
@@ -51,35 +55,45 @@
         box-sizing: border-box;
       }
       .source {
-        background: #f00;
+        background: #f00 !important;
       }
       .target {
-        background: #00f;
+        background: #00f !important;
+      }
+      #status {
+        font-size: 18px;
+        font-weight: bold;
       }
     </style>
   </head>
   <body>
     <div id="game"></div>
+    <div id="status">Rotate tiles to connect source to target!</div>
 
     <script>
       const game = document.getElementById("game");
+      const status = document.getElementById("status");
       const size = 5;
 
-      // Define tile types
       const types = ["pipe", "vertical", "corner"];
 
-      function createTile(type) {
+      function createTile(type, index) {
         const tile = document.createElement("div");
         tile.classList.add("tile");
         const piece = document.createElement("div");
         piece.classList.add(type);
         tile.appendChild(piece);
 
-        // Rotate tile on click
         let rotation = 0;
+        tile.dataset.type = type;
+        tile.dataset.rotation = rotation;
+        tile.dataset.index = index;
+
         tile.addEventListener("click", () => {
           rotation = (rotation + 90) % 360;
           tile.style.transform = `rotate(${rotation}deg)`;
+          tile.dataset.rotation = rotation;
+          checkWin();
         });
 
         return tile;
@@ -88,10 +102,27 @@
       // Build grid
       for (let i = 0; i < size * size; i++) {
         let type = types[Math.floor(Math.random() * types.length)];
-        let tile = createTile(type);
+        let tile = createTile(type, i);
         if (i === 0) tile.classList.add("source");
         if (i === size * size - 1) tile.classList.add("target");
         game.appendChild(tile);
+      }
+
+      // Path-checking logic (simplified)
+      function checkWin() {
+        // For now, just check if source and target are rotated to "open" positions
+        const tiles = document.querySelectorAll(".tile");
+        const source = tiles[0];
+        const target = tiles[tiles.length - 1];
+
+        // Example condition: source rotated 0°, target rotated 180°
+        if (source.dataset.rotation == 0 && target.dataset.rotation == 180) {
+          status.textContent = "✅ You connected the source to the target!";
+          status.style.color = "#0f0";
+        } else {
+          status.textContent = "Keep rotating to connect...";
+          status.style.color = "#fff";
+        }
       }
     </script>
   </body>
